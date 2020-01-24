@@ -36,8 +36,12 @@ do
 
   function Action:new(fn)
     assertType(fn, 'function', 'action function')
-    self.update = fn
+    self._fn = fn
     return self
+  end
+
+  function Action:update(entity, dt)
+    return self._fn(entity, dt)
   end
 end
 
@@ -64,11 +68,49 @@ do
 
   function Selector:update(index, entity, dt)
     for i = index, self._len do
-      local result = self._actions[i].update(entity, dt)
+      local node = self._actions[i]
+      if node._fn == nil then
+        -- Node is a metanode, push onto stack.
+        return nil, node
+      end
+      local result = node:update(entity, dt)
       if result == true then
         return true
       elseif result == nil then
         return nil, i
+      end
+    end
+  end
+end
+
+do
+  local Sequence = {}
+  local SequenceMT = {__index = Sequence}
+
+  function Ygg.sequence()
+    return setmetatable({}, SequenceMT)
+      :new()
+  end
+
+  function Sequence:new()
+    self._actions = {}
+    self._len = 0
+    return self
+  end
+
+  function Sequence:add(action)
+    self._len = self._len + 1
+    self._actions[self._len] = action
+    return self
+  end
+
+  function Sequence:update(index, entity, dt)
+    for i = index, self._len do
+      local result = self._actions[i]:update(entity, dt)
+      if result == false then
+        return false
+      elseif result == nil then
+        return nil, nil, i
       end
     end
   end
@@ -85,18 +127,50 @@ do
 
   function Runner:new(action, entity)
     assertType(action, 'table', 'action')
-    self._nodes = {action}
-    self._nodesLen = 1
-    self._nodeIndex = 1
+    self._nodes = {}
+    self._len = 0
+    self._indexes = {}
     self.entity = entity
+    self:_push(action)
     return self
   end
 
   function Runner:update(dt)
-    local status, index = self._nodes[self._nodesLen]:update(self._nodeIndex, self.entity, dt)
-    if index then
-      self._nodeIndex = index
+    local status, node, index = self._nodes[self._len]:update(
+      self._indexes[self._len],
+      self.entity,
+      dt
+    )
+    -- print('update', self._len, '->', status, node, index)
+    if status ~= nil then
+      if self._len == 1 then
+        self._indexes[1] = 1
+      else
+        self:_pop()
+        self:update(dt)
+      end
+
+    elseif index then
+      self._indexes[self._len] = index
+
+    elseif node then
+      self:_push(node)
+      self:update(dt)
     end
+  end
+
+  function Runner:_push(node)
+    self._len = self._len + 1
+    self._nodes[self._len] = node
+    self._indexes[self._len] = 1
+  end
+
+  function Runner:_pop()
+    self._nodes[self._len] = nil
+    self._indexes[self._len] = nil
+    self._len = self._len - 1
+    -- increment index of next node.
+    self._indexes[self._len] = self._indexes[self._len] + 1
   end
 end
 
