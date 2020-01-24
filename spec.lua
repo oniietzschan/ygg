@@ -8,11 +8,11 @@ local Ygg = require 'ygg'
 
 describe('Ygg:', function()
   it('Basic functionality', function()
-    local isHungry = Ygg(function(this, dt)
+    local isHungry = Ygg(function(this)
       print('RUNNING: isHungry')
       return this.hunger >= 50
     end)
-    local isSleepy = Ygg(function(this, dt)
+    local isSleepy = Ygg(function(this)
       print('RUNNING: isSleepy')
       return this.tiredness >= 100
     end)

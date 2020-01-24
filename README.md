@@ -3,6 +3,10 @@ Ygg
 
 Behaviour trees in Lua.
 
+[![Build Status](https://travis-ci.org/oniietzschan/ygg.svg?branch=master)](https://travis-ci.org/oniietzschan/ygg)
+[![Codecov](https://codecov.io/gh/oniietzschan/ygg/branch/master/graph/badge.svg)](https://codecov.io/gh/oniietzschan/ygg)
+![Lua](https://img.shields.io/badge/Lua-JIT%2C%205.1-blue.svg)
+
 ```lua
 local eat = Ygg(function(this, dt)
   if this.hunger == 0 then
@@ -25,8 +29,16 @@ local idle = Ygg(function(this, dt)
 end)
 
 local tree = Ygg.selector()
-  :add(eat)
-  :add(sleep)
+  :add(
+    Ygg.sequence()
+      :add(isHungry)
+      :add(eat)
+  )
+  :add(
+    Ygg.sequence()
+      :add(isSleepy)
+      :add(sleep)
+  )
   :add(idle)
 
 local entity = {
