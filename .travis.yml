@@ -1,0 +1,30 @@
+language: python
+sudo: false
+
+env:
+  - LUA="lua=5.1"
+  - LUA="luajit=2.0"
+  - LUA="luajit=2.1"
+
+before_install:
+  - pip install hererocks
+  - hererocks lua_install -r^ --$LUA
+  - export PATH=$PATH:$PWD/lua_install/bin
+
+install:
+  - luarocks install busted
+  - luarocks install luacheck
+  - luarocks install luacov
+
+script:
+  - busted --verbose --coverage spec.lua
+  - luacheck .
+
+after_success:
+  - luacov
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
