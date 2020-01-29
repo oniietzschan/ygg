@@ -44,7 +44,7 @@ describe('Ygg:', function()
           :add(eat)
       )
       :add(
-        Ygg.sequence('hunger sequence')
+        Ygg.sequence('sleep sequence')
           :add(isSleepy)
           :add(sleep)
       )
@@ -56,7 +56,7 @@ describe('Ygg:', function()
       tiredness = 70,
     }
 
-    local runner = Ygg.run(tree, entity)
+    local runner = Ygg.run(tree)
 
     local expectedResults = {
       {state =     'idle', hunger = 40, tiredness =  80},
@@ -71,7 +71,7 @@ describe('Ygg:', function()
       {state = 'sleeping', hunger = 10, tiredness =  50},
     }
     for _, expected in ipairs(expectedResults) do
-      runner:update(1)
+      runner:update(entity, 1)
       print(("Hunger: %d, Tired: %d\n"):format(entity.hunger, entity.tiredness))
       assert.same(expected, entity)
     end

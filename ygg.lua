@@ -44,7 +44,7 @@ do
     return self
   end
 
-  function Action:update(entity, dt)
+  function Action:update(_, entity, dt)
     return self._fn(entity, dt)
   end
 end
@@ -75,14 +75,15 @@ do
         :new(...)
     end
 
-    function Selector:update(index, entity, dt)
+    function Selector:update(index, ...)
       for i = index, self._len do
         local node = self._actions[i]
         if node._fn == nil then
           -- Node is a metanode, push onto stack.
           return nil, node
         end
-        local result = node:update(entity, dt)
+        -- print('Running: ' .. node.name)
+        local result = node:update(index, ...)
         if result == true then
           return true
         elseif result == nil then
@@ -104,9 +105,11 @@ do
         :new(...)
     end
 
-    function Sequence:update(index, entity, dt)
+    function Sequence:update(index, ...)
       for i = index, self._len do
-        local result = self._actions[i]:update(entity, dt)
+        local node = self._actions[i]
+        -- print('Running: ' .. node.name)
+        local result = node:update(index, ...)
         if result == false then
           return false
         elseif result == nil then
@@ -126,52 +129,36 @@ do
       :new(...)
   end
 
-  function Runner:new(action, entity)
+  function Runner:new(action)
     assertType(action, 'table', 'action')
-    self._nodes = {}
-    self._len = 0
-    self._indexes = {}
-    self.entity = entity
-    self:_push(action)
+    self._action = action
+    self._index = 1
+    self.finished = false
     return self
   end
 
-  function Runner:update(dt)
-    -- print('Running: ' .. tostring(self._nodes[self._len].name))
-    local status, node, index = self._nodes[self._len]:update(
-      self._indexes[self._len],
-      self.entity,
-      dt
-    )
-    if status ~= nil then
-      if self._len == 1 then
-        self._indexes[1] = 1
+  function Runner:update(...)
+    if self._next then
+      self._next:update(...)
+      if self._next.finished then
+        self._next = nil
+        self._index = self._index + 1
       else
-        self:_pop()
-        self:update(dt)
+        return
       end
-
-    elseif index then
-      self._indexes[self._len] = index
-
-    elseif node then
-      self:_push(node)
-      self:update(dt)
     end
-  end
 
-  function Runner:_push(node)
-    self._len = self._len + 1
-    self._nodes[self._len] = node
-    self._indexes[self._len] = 1
-  end
-
-  function Runner:_pop()
-    self._nodes[self._len] = nil
-    self._indexes[self._len] = nil
-    self._len = self._len - 1
-    -- increment index of next node.
-    self._indexes[self._len] = self._indexes[self._len] + 1
+    -- print('Running: ' .. tostring(self._action.name))
+    local status, node, index = self._action:update(self._index, ...)
+    if status ~= nil then
+      self.finished = true
+      self._index = 1
+    elseif index then
+      self._index = index
+    elseif node then
+      self._next = Ygg.run(node)
+      self:update(...)
+    end
   end
 end
 
