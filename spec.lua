@@ -8,16 +8,13 @@ local Ygg = require 'ygg'
 
 describe('Ygg:', function()
   it('Basic functionality', function()
-    local isHungry = Ygg(function(this)
-      print('RUNNING: isHungry')
+    local isHungry = Ygg('isHungry', function(this)
       return this.hunger >= 50
     end)
-    local isSleepy = Ygg(function(this)
-      print('RUNNING: isSleepy')
+    local isSleepy = Ygg('isSleepy', function(this)
       return this.tiredness >= 100
     end)
-    local eat = Ygg(function(this, dt)
-      print('RUNNING: eat')
+    local eat = Ygg('eat', function(this, dt)
       if this.hunger == 0 then
         return false
       end
@@ -25,8 +22,7 @@ describe('Ygg:', function()
       this.hunger = math.max(0, this.hunger - 25 * dt)
       return (this.hunger == 0) and true or nil
     end)
-    local sleep = Ygg(function(this, dt)
-      print('RUNNING: sleep')
+    local sleep = Ygg('sleep', function(this, dt)
       if this.tiredness == 0 then
         return false
       end
@@ -34,22 +30,21 @@ describe('Ygg:', function()
       this.tiredness = math.max(0, this.tiredness - 10 * dt)
       return (this.tiredness == 0) and true or nil
     end)
-    local idle = Ygg(function(this, dt)
-      print('RUNNING: idle')
+    local idle = Ygg('idle', function(this, dt)
       this.state = 'idle'
       this.hunger = this.hunger + 10 * dt
       this.tiredness = this.tiredness + 10 * dt
       return true
     end)
 
-    local tree = Ygg.selector()
+    local tree = Ygg.selector('root')
       :add(
-        Ygg.sequence()
+        Ygg.sequence('hunger sequence')
           :add(isHungry)
           :add(eat)
       )
       :add(
-        Ygg.sequence()
+        Ygg.sequence('hunger sequence')
           :add(isSleepy)
           :add(sleep)
       )

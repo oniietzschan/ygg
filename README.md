@@ -8,6 +8,14 @@ Behaviour trees in Lua.
 ![Lua](https://img.shields.io/badge/Lua-JIT%2C%205.1-blue.svg)
 
 ```lua
+local isHungry = Ygg(function(this)
+  return this.hunger >= 50
+end)
+
+local isSleepy = Ygg(function(this)
+  return this.tiredness >= 100
+end)
+
 local eat = Ygg(function(this, dt)
   if this.hunger == 0 then
     return false
@@ -15,6 +23,7 @@ local eat = Ygg(function(this, dt)
   this.hunger = math.max(0, this.hunger - 10 * dt)
   return (this.hunger == 0) and true or nil
 end)
+
 local sleep = Ygg(function(this, dt)
   if this.tiredness == 0 then
     return false
@@ -22,6 +31,7 @@ local sleep = Ygg(function(this, dt)
   this.tiredness = math.max(0, this.tiredness - 5 * dt)
   return (this.tiredness == 0) and true or nil
 end)
+
 local idle = Ygg(function(this, dt)
   this.hunger = this.hunger + dt
   this.tiredness = this.tiredness + dt

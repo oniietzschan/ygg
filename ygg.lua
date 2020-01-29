@@ -34,8 +34,12 @@ do
     end,
   })
 
-  function Action:new(fn)
+  function Action:new(name, fn)
+    if type(name) == 'function' then
+      name, fn = '<Action>', name
+    end
     assertType(fn, 'function', 'action function')
+    self.name = name
     self._fn = fn
     return self
   end
@@ -46,71 +50,68 @@ do
 end
 
 do
-  local Selector = {}
-  local SelectorMT = {__index = Selector}
-
-  function Ygg.selector()
-    return setmetatable({}, SelectorMT)
-      :new()
-  end
-
-  function Selector:new()
+  local function _new(self, name)
+    self.name = name
     self._actions = {}
     self._len = 0
     return self
   end
 
-  function Selector:add(action)
+  local function _add(self, action)
     self._len = self._len + 1
     self._actions[self._len] = action
     return self
   end
 
-  function Selector:update(index, entity, dt)
-    for i = index, self._len do
-      local node = self._actions[i]
-      if node._fn == nil then
-        -- Node is a metanode, push onto stack.
-        return nil, node
-      end
-      local result = node:update(entity, dt)
-      if result == true then
-        return true
-      elseif result == nil then
-        return nil, i
+  do
+    local Selector = {
+      new = _new,
+      add = _add,
+    }
+    local SelectorMT = {__index = Selector}
+
+    function Ygg.selector(...)
+      return setmetatable({}, SelectorMT)
+        :new(...)
+    end
+
+    function Selector:update(index, entity, dt)
+      for i = index, self._len do
+        local node = self._actions[i]
+        if node._fn == nil then
+          -- Node is a metanode, push onto stack.
+          return nil, node
+        end
+        local result = node:update(entity, dt)
+        if result == true then
+          return true
+        elseif result == nil then
+          return nil, i
+        end
       end
     end
   end
-end
 
-do
-  local Sequence = {}
-  local SequenceMT = {__index = Sequence}
+  do
+    local Sequence = {
+      new = _new,
+      add = _add,
+    }
+    local SequenceMT = {__index = Sequence}
 
-  function Ygg.sequence()
-    return setmetatable({}, SequenceMT)
-      :new()
-  end
+    function Ygg.sequence(...)
+      return setmetatable({}, SequenceMT)
+        :new(...)
+    end
 
-  function Sequence:new()
-    self._actions = {}
-    self._len = 0
-    return self
-  end
-
-  function Sequence:add(action)
-    self._len = self._len + 1
-    self._actions[self._len] = action
-    return self
-  end
-
-  function Sequence:update(index, entity, dt)
-    for i = index, self._len do
-      local result = self._actions[i]:update(entity, dt)
-      if result == false then
-        return false
-      elseif result == nil then
-        return nil, nil, i
+    function Sequence:update(index, entity, dt)
+      for i = index, self._len do
+        local result = self._actions[i]:update(entity, dt)
+        if result == false then
+          return false
+        elseif result == nil then
+          return nil, nil, i
+        end
       end
     end
   end
@@ -136,12 +137,12 @@ do
   end
 
   function Runner:update(dt)
+    -- print('Running: ' .. tostring(self._nodes[self._len].name))
     local status, node, index = self._nodes[self._len]:update(
       self._indexes[self._len],
       self.entity,
       dt
     )
-    -- print('update', self._len, '->', status, node, index)
     if status ~= nil then
       if self._len == 1 then
         self._indexes[1] = 1
