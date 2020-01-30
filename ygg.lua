@@ -90,6 +90,7 @@ do
           return nil, nil, i
         end
       end
+      return false -- All sub-nodes failed.
     end
   end
 

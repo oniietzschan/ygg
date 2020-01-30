@@ -113,6 +113,41 @@ describe('Ygg:', function()
     end
   end)
 
+  it('Should reset to first index if Selector within Sequence fails', function()
+    local addIdol = Ygg('addIdol', function(this)
+      this.idols = this.idols + 1
+      return true
+    end)
+    local willFail = Ygg('willFail', function()
+      return false
+    end)
+
+    local tree = Ygg.sequence('root')
+      :add(addIdol)
+      :add(
+        Ygg.selector('fail selector')
+          :add(willFail)
+          :add(willFail)
+          :add(willFail)
+      )
+
+    local runner = Ygg.run(tree)
+    local entity = {
+      idols = 0,
+    }
+
+    local expectedResults = {
+      {idols = 1},
+      {idols = 2},
+      {idols = 3},
+    }
+    for _, expected in ipairs(expectedResults) do
+      runner:update(entity)
+      -- print(("Idols: %d"):format(entity.idols))
+      assert.same(expected, entity)
+    end
+  end)
+
   it('Should be able to create actions without a name', function()
     local action = Ygg(function() end)
     assert.same('<Action>', action.name)
