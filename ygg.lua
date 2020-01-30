@@ -87,7 +87,7 @@ do
         if result == true then
           return true
         elseif result == nil then
-          return nil, i
+          return nil, nil, i
         end
       end
     end

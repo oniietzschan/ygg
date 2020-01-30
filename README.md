@@ -51,15 +51,15 @@ local tree = Ygg.selector()
   )
   :add(idle)
 
+local runner = Ygg.run(tree)
+
 local entity = {
   hunger = 25,
   tiredness = 0,
 }
 
-local runner = Ygg.run(tree, entity)
-
 for _ = 1, 10 do
   print(("Hunger: %d, Tired: %d"):format(entity.hunger, entity.tiredness))
-  runner:update(1)
+  runner:update(entity, 1)
 end
 ```
