@@ -139,6 +139,51 @@ describe('Ygg:', function()
       runner:update(entity)
       assert.same(expected, entity)
     end
+
+    shouldNotBeExecuted:update(nil, {unexpected = -1}) -- Test coverage lololol
+  end)
+
+  it('Should reset to first index after Selector succeeds', function()
+    local hasPlate = Ygg('hasPlate', function(this)
+      return this.plates >= 1
+    end)
+    local getFood = Ygg('getFood', function(this)
+      this.food = this.food + 1
+      return true
+    end)
+    local getPlate = Ygg('getPlate', function(this)
+      this.plates = this.plates + 1
+      return true
+    end)
+
+    local tree = Ygg.selector('root')
+      :add(
+        Ygg.sequence('food seq')
+          :add(hasPlate)
+          :add(getFood)
+      )
+      :add(
+        Ygg.sequence('plate seq')
+          :add(getPlate)
+      )
+
+    local runner = Ygg.run(tree)
+    local entity = {
+      food = 0,
+      plates = 0,
+    }
+
+    local expectedResults = {
+      {food = 0, plates = 1},
+      {food = 1, plates = 1},
+      {food = 2, plates = 1},
+      {food = 3, plates = 1},
+    }
+    for _, expected in ipairs(expectedResults) do
+      runner:update(entity)
+      -- print(("Food: %d, Plates: %d"):format(entity.food, entity.plates))
+      assert.same(expected, entity)
+    end
   end)
 
   it('Should reset to first index if Selector within Sequence fails', function()

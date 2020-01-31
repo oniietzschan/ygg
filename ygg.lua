@@ -53,8 +53,8 @@ do
     return self
   end
 
-  function Action:update(_, entity, dt)
-    return self._fn(entity, dt)
+  function Action:update(_, ...)
+    return self._fn(...)
   end
 end
 
@@ -162,6 +162,7 @@ do
         or (self._action.class == CLASS.SELECTOR and status == true)
       then
         self.status = status
+        self._index = 1
         return
       else
         self._index = self._index + 1
