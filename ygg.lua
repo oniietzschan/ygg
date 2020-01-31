@@ -24,6 +24,7 @@ end
 local Ygg = {}
 
 local NO_INDEX = -1
+local NO_NODE = {}
 
 do
   local Action = {}
@@ -87,13 +88,13 @@ do
         -- print('Running: ' .. node.name)
         local result = node:update(index, ...)
         if result == true then
-          return true, nil, NO_INDEX
+          return true, NO_NODE, NO_INDEX
           -- return true
         elseif result == nil then
-          return nil, nil, i
+          return nil, NO_NODE, i
         end
       end
-      return false, nil, NO_INDEX -- All sub-nodes failed.
+      return false, NO_NODE, NO_INDEX -- All sub-nodes failed.
     end
   end
 
@@ -115,12 +116,12 @@ do
         -- print('Running: ' .. node.name)
         local result = node:update(index, ...)
         if result == false then
-          return false, nil, NO_INDEX
+          return false, NO_NODE, NO_INDEX
         elseif result == nil then
-          return nil, nil, i
+          return nil, NO_NODE, i
         end
       end
-      return true, nil, NO_INDEX -- All sub-nodes succeeded.
+      return true, NO_NODE, NO_INDEX -- All sub-nodes succeeded.
     end
   end
 end
@@ -160,7 +161,7 @@ do
       self._index = 1
     elseif index ~= NO_INDEX then
       self._index = index
-    elseif node then
+    elseif node ~= NO_NODE then
       self._next = Ygg.run(node)
       self:update(...)
     end
