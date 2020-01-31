@@ -24,11 +24,11 @@ describe('Ygg:', function()
     end)
     local sleep = Ygg('sleep', function(this)
       if this.tiredness == 0 then
-        return false
+        return true
       end
       this.state = 'sleeping'
       this.tiredness = math.max(0, this.tiredness - 30)
-      return (this.tiredness == 0) and true or nil
+      return nil
     end)
     local idle = Ygg('idle', function(this)
       this.state = 'idle'
@@ -61,7 +61,6 @@ describe('Ygg:', function()
       {state =     'idle', hunger = 40, tiredness =  80},
       {state =     'idle', hunger = 50, tiredness =  90},
       {state =   'eating', hunger = 25, tiredness =  90},
-      {state =   'eating', hunger =  0, tiredness =  90},
       {state =     'idle', hunger = 10, tiredness = 100},
       {state = 'sleeping', hunger = 10, tiredness =  70},
       {state = 'sleeping', hunger = 10, tiredness =  40},

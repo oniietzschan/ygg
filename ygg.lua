@@ -23,6 +23,8 @@ end
 
 local Ygg = {}
 
+local NO_INDEX = -1
+
 do
   local Action = {}
   local ActionMT = {__index = Action}
@@ -80,17 +82,18 @@ do
         local node = self._actions[i]
         if node._fn == nil then
           -- Node is a metanode, push onto stack.
-          return nil, node
+          return nil, node, NO_INDEX
         end
         -- print('Running: ' .. node.name)
         local result = node:update(index, ...)
         if result == true then
-          return true
+          return true, nil, NO_INDEX
+          -- return true
         elseif result == nil then
           return nil, nil, i
         end
       end
-      return false -- All sub-nodes failed.
+      return false, nil, NO_INDEX -- All sub-nodes failed.
     end
   end
 
@@ -112,11 +115,12 @@ do
         -- print('Running: ' .. node.name)
         local result = node:update(index, ...)
         if result == false then
-          return false
+          return false, nil, NO_INDEX
         elseif result == nil then
           return nil, nil, i
         end
       end
+      return true, nil, NO_INDEX -- All sub-nodes succeeded.
     end
   end
 end
@@ -154,7 +158,7 @@ do
     if status ~= nil then
       self.finished = true
       self._index = 1
-    elseif index then
+    elseif index ~= NO_INDEX then
       self._index = index
     elseif node then
       self._next = Ygg.run(node)
