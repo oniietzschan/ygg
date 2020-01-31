@@ -2,10 +2,6 @@ require 'busted'
 
 local Ygg = require 'ygg'
 
--- Sequence: Executes it's children sequentially until one succeeds.
--- Selector: "Tries" to execute its children in order until one succeeds.
--- Action: Can be run, fail, or succeed.
-
 describe('Ygg:', function()
   it('Basic functionality', function()
     local isHungry = Ygg('isHungry', function(this)
@@ -15,20 +11,14 @@ describe('Ygg:', function()
       return this.tiredness >= 100
     end)
     local eat = Ygg('eat', function(this)
-      if this.hunger == 0 then
-        return false
-      end
       this.state = 'eating'
       this.hunger = math.max(0, this.hunger - 25)
       return (this.hunger == 0) and true or nil
     end)
     local sleep = Ygg('sleep', function(this)
-      if this.tiredness == 0 then
-        return true
-      end
       this.state = 'sleeping'
       this.tiredness = math.max(0, this.tiredness - 30)
-      return nil
+      return (this.tiredness == 0) and true or nil
     end)
     local idle = Ygg('idle', function(this)
       this.state = 'idle'
@@ -52,7 +42,7 @@ describe('Ygg:', function()
 
     local runner = Ygg.run(tree)
     local entity = {
-      state = 'idle',
+      state = '<unset>',
       hunger = 30,
       tiredness = 70,
     }
@@ -61,6 +51,7 @@ describe('Ygg:', function()
       {state =     'idle', hunger = 40, tiredness =  80},
       {state =     'idle', hunger = 50, tiredness =  90},
       {state =   'eating', hunger = 25, tiredness =  90},
+      {state =   'eating', hunger =  0, tiredness =  90},
       {state =     'idle', hunger = 10, tiredness = 100},
       {state = 'sleeping', hunger = 10, tiredness =  70},
       {state = 'sleeping', hunger = 10, tiredness =  40},
@@ -108,6 +99,44 @@ describe('Ygg:', function()
     for _, expected in ipairs(expectedResults) do
       runner:update(entity)
       -- print(("State: %6s, Hunger: %2d"):format(entity.state, entity.hunger))
+      assert.same(expected, entity)
+    end
+  end)
+
+  it('Selector should restart if any sub-nodes succeed, including sequence.', function()
+    local willAlwaysSucceedOne = Ygg('addIdol', function(this)
+      this.expected = this.expected + 1
+      return true
+    end)
+    local willAlwaysSucceedTen = Ygg('addIdol', function(this)
+      this.expected = this.expected + 10
+      return true
+    end)
+    local shouldNotBeExecuted = Ygg('willFail', function(this)
+      this.unexpected = this.unexpected + 1
+      return true
+    end)
+
+    local tree = Ygg.selector('root')
+      :add(
+        Ygg.sequence('success seq')
+          :add(willAlwaysSucceedOne)
+          :add(willAlwaysSucceedTen)
+      )
+      :add(shouldNotBeExecuted)
+
+    local runner = Ygg.run(tree)
+    local entity = {
+      expected = 0,
+      unexpected = 0,
+    }
+
+    local expectedResults = {
+      {expected = 11, unexpected = 0},
+      {expected = 22, unexpected = 0},
+    }
+    for _, expected in ipairs(expectedResults) do
+      runner:update(entity)
       assert.same(expected, entity)
     end
   end)

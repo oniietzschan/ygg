@@ -23,6 +23,11 @@ end
 
 local Ygg = {}
 
+local CLASS = {
+  ACTION = 'ACTION',
+  SELECTOR = 'SELECTOR',
+  SEQUENCE = 'SEQUENCE',
+}
 local NO_INDEX = -1
 local NO_NODE = {}
 
@@ -38,6 +43,7 @@ do
   })
 
   function Action:new(name, fn)
+    self.class = CLASS.ACTION -- Lawsuit incoming.
     if type(name) == 'function' then
       name, fn = '<Action>', name
     end
@@ -53,7 +59,8 @@ do
 end
 
 do
-  local function _new(self, name)
+  local function _new(self, class, name)
+    self.class = class
     self.name = name
     self._actions = {}
     self._len = 0
@@ -75,13 +82,13 @@ do
 
     function Ygg.selector(...)
       return setmetatable({}, SelectorMT)
-        :new(...)
+        :new(CLASS.SELECTOR, ...)
     end
 
     function Selector:update(index, ...)
       for i = index, self._len do
         local node = self._actions[i]
-        if node._fn == nil then
+        if node.class ~= CLASS.ACTION then
           -- Node is a metanode, push onto stack.
           return nil, node, NO_INDEX
         end
@@ -89,7 +96,6 @@ do
         local result = node:update(index, ...)
         if result == true then
           return true, NO_NODE, NO_INDEX
-          -- return true
         elseif result == nil then
           return nil, NO_NODE, i
         end
@@ -107,7 +113,7 @@ do
 
     function Ygg.sequence(...)
       return setmetatable({}, SequenceMT)
-        :new(...)
+        :new(CLASS.SEQUENCE, ...)
     end
 
     function Sequence:update(index, ...)
@@ -139,25 +145,33 @@ do
     assertType(action, 'table', 'action')
     self._action = action
     self._index = 1
-    self.finished = false
+    self.status = nil
     return self
   end
 
   function Runner:update(...)
     if self._next then
       self._next:update(...)
-      if self._next.finished then
-        self._next = nil
-        self._index = self._index + 1
-      else
+      local status = self._next.status
+      if status == nil then
         return
+      end
+      self._next = nil
+      -- This shit kind of sucks, probably refactor eventually.
+      if   (self._action.class == CLASS.SEQUENCE and status == false)
+        or (self._action.class == CLASS.SELECTOR and status == true)
+      then
+        self.status = status
+        return
+      else
+        self._index = self._index + 1
       end
     end
 
     -- print('Running: ' .. tostring(self._action.name))
     local status, node, index = self._action:update(self._index, ...)
     if status ~= nil then
-      self.finished = true
+      self.status = status
       self._index = 1
     elseif index ~= NO_INDEX then
       self._index = index
