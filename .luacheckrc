@@ -3,6 +3,9 @@ allow_defined = false -- Do NOT allow implicitly defined globals.
 allow_defined_top = false -- Do NOT allow implicitly defined globals.
 
 files = {
+  ['debug_graph.lua'] = {
+    std = 'luajit+love',
+  },
   ['ygg.lua'] = {
     std = 'luajit',
   },
