@@ -49,18 +49,13 @@ do
     end
     assertType(fn, 'function', 'action function')
     self.name = name
-    self._fn = fn
+    self.func = fn
     return self
-  end
-
-  function Action:update(_, ...)
-    return self._fn(...)
   end
 end
 
 do
-  local function _new(self, class, name)
-    self.class = class
+  local function _new(self, name)
     self.name = name
     self._actions = {}
     self._len = 0
@@ -73,61 +68,54 @@ do
     return self
   end
 
+  local function _update(self, index, ...)
+    for i = index, self._len do
+      local node = self._actions[i]
+      if node.class ~= CLASS.ACTION then
+        return nil, node, NO_INDEX -- Node is a metanode, push onto stack.
+      end
+      -- print('Running: ' .. node.name)
+      local result = node.func(...)
+      if result == self._exitOnResult then
+        return result, NO_NODE, NO_INDEX
+      elseif result == nil then
+        return nil, NO_NODE, i
+      end
+    end
+    return self._statusIfFinished, NO_NODE, NO_INDEX
+  end
+
   do
     local Selector = {
+      class = CLASS.SELECTOR,
       new = _new,
       add = _add,
+      update = _update,
+      _exitOnResult = true,
+      _statusIfFinished = false,
     }
     local SelectorMT = {__index = Selector}
 
     function Ygg.selector(...)
       return setmetatable({}, SelectorMT)
-        :new(CLASS.SELECTOR, ...)
-    end
-
-    function Selector:update(index, ...)
-      for i = index, self._len do
-        local node = self._actions[i]
-        if node.class ~= CLASS.ACTION then
-          -- Node is a metanode, push onto stack.
-          return nil, node, NO_INDEX
-        end
-        -- print('Running: ' .. node.name)
-        local result = node:update(index, ...)
-        if result == true then
-          return true, NO_NODE, NO_INDEX
-        elseif result == nil then
-          return nil, NO_NODE, i
-        end
-      end
-      return false, NO_NODE, NO_INDEX -- All sub-nodes failed.
+        :new(...)
     end
   end
 
   do
     local Sequence = {
+      class = CLASS.SEQUENCE,
       new = _new,
       add = _add,
+      update = _update,
+      _exitOnResult = false,
+      _statusIfFinished = true,
     }
     local SequenceMT = {__index = Sequence}
 
     function Ygg.sequence(...)
       return setmetatable({}, SequenceMT)
-        :new(CLASS.SEQUENCE, ...)
-    end
-
-    function Sequence:update(index, ...)
-      for i = index, self._len do
-        local node = self._actions[i]
-        -- print('Running: ' .. node.name)
-        local result = node:update(index, ...)
-        if result == false then
-          return false, NO_NODE, NO_INDEX
-        elseif result == nil then
-          return nil, NO_NODE, i
-        end
-      end
-      return true, NO_NODE, NO_INDEX -- All sub-nodes succeeded.
+        :new(...)
     end
   end
 end

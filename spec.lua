@@ -140,7 +140,7 @@ describe('Ygg:', function()
       assert.same(expected, entity)
     end
 
-    shouldNotBeExecuted:update(nil, {unexpected = -1}) -- Test coverage lololol
+    shouldNotBeExecuted.func({unexpected = -1}) -- Test coverage lololol
   end)
 
   it('Should reset to first index after Selector succeeds', function()
