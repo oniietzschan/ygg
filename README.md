@@ -60,6 +60,29 @@ local entity = {
 
 for _ = 1, 10 do
   print(("Hunger: %d, Tired: %d"):format(entity.hunger, entity.tiredness))
-  runner:update(entity, 1)
+  local dt = 1
+  -- :update() arguments will be passed into action functions.
+  runner:update(entity, dt)
+end
+```
+
+Documentation
+-------------
+
+Coming soon???? You're on your own for now, chief.
+
+Debug Graph
+-----------
+
+Included in the repository is an optional file `debug_graph.lua` which you can use to help visualize your tree and work out issues. You can use it like so:
+
+```lua
+
+local YggDebugGraph = require 'debug_graph'
+local graph = YggDebugGraph(yggTreeRunner)
+
+function love.draw()
+  local x, y = 10, 10
+  graph:draw(x, y)
 end
 ```
