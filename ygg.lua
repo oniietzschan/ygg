@@ -28,7 +28,6 @@ local CLASS = {
   SELECTOR = 'SELECTOR',
   SEQUENCE = 'SEQUENCE',
 }
-local NO_INDEX = -1
 local NO_NODE = {}
 
 do
@@ -68,21 +67,22 @@ do
     return self
   end
 
-  local function _update(self, index, ...)
-    for i = index, self._len do
-      local node = self._actions[i]
+  local function _update(self, runner, ...)
+    while runner.index <= self._len do
+      local node = self._actions[runner.index]
       if node.class ~= CLASS.ACTION then
-        return nil, node, NO_INDEX -- Node is a metanode, push onto stack.
+        return nil, node -- Node is a metanode, push onto stack.
       end
       -- print('Running: ' .. node.name)
       local result = node.func(...)
       if result == self._exitOnResult then
-        return result, NO_NODE, NO_INDEX
+        return result, NO_NODE
       elseif result == nil then
-        return nil, NO_NODE, i
+        return nil, NO_NODE
       end
+      runner.index = runner.index + 1
     end
-    return self._statusIfFinished, NO_NODE, NO_INDEX
+    return self._statusIfFinished, NO_NODE
   end
 
   do
@@ -132,7 +132,7 @@ do
   function Runner:new(action)
     assertType(action, 'table', 'action')
     self._action = action
-    self._index = 1
+    self.index = 1
     self.status = nil
     return self
   end
@@ -150,20 +150,18 @@ do
         or (self._action.class == CLASS.SELECTOR and status == true)
       then
         self.status = status
-        self._index = 1
+        self.index = 1
         return
       else
-        self._index = self._index + 1
+        self.index = self.index + 1
       end
     end
 
     -- print('Running: ' .. tostring(self._action.name))
-    local status, node, index = self._action:update(self._index, ...)
+    local status, node = self._action:update(self, ...)
     if status ~= nil then
       self.status = status
-      self._index = 1
-    elseif index ~= NO_INDEX then
-      self._index = index
+      self.index = 1
     elseif node ~= NO_NODE then
       self._next = Ygg.run(node)
       self:update(...)
