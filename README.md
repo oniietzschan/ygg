@@ -1,11 +1,11 @@
 Ygg
 ===
 
-Behaviour trees in Lua.
-
 [![Build Status](https://travis-ci.org/oniietzschan/ygg.svg?branch=master)](https://travis-ci.org/oniietzschan/ygg)
 [![Codecov](https://codecov.io/gh/oniietzschan/ygg/branch/master/graph/badge.svg)](https://codecov.io/gh/oniietzschan/ygg)
 ![Lua](https://img.shields.io/badge/Lua-JIT%2C%205.1-blue.svg)
+
+Behaviour trees in Lua.
 
 ![A High Resolution Photo Of A 53-Year-Old Man Manipulating His Sphincter](https://i.ibb.co/kQCdwm0/2020-02-01-behaviour-tree.gif)
 
