@@ -1,7 +1,7 @@
 --[[
 
 Ygg v0.0.0
-===============
+==========
 
 Behaviour trees by shru.
 
@@ -10,7 +10,7 @@ https://github.com/oniietzschan/ygg
 LICENSE
 -------
 
-Whoever knows how to take, to defend, the thing — to him belongs property.
+Whoever knows how to take, to defend, the "Software" — to him belongs property.
 
 --]]
 
