@@ -36,7 +36,9 @@ local CLASS = {
 local NO_NODE = {}
 
 do
-  local Action = {}
+  local Action = {
+    class = CLASS.ACTION, -- Lawsuit incoming.
+  }
   local ActionMT = {__index = Action}
 
   setmetatable(Ygg, {
@@ -47,7 +49,6 @@ do
   })
 
   function Action:new(name, fn)
-    self.class = CLASS.ACTION -- Lawsuit incoming.
     if type(name) == 'function' then
       name, fn = '<Action>', name
     end
@@ -78,7 +79,6 @@ do
       if node.class ~= CLASS.ACTION then
         return nil, node -- Node is a metanode, push onto stack.
       end
-      -- print('Running: ' .. node.name)
       local result = node.func(...)
       if result == self._exitOnResult then
         return result, NO_NODE
@@ -162,7 +162,6 @@ do
       end
     end
 
-    -- print('Running: ' .. tostring(self._action.name))
     local status, node = self._action:update(self, ...)
     if status ~= nil then
       self.status = status
