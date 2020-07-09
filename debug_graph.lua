@@ -1,7 +1,4 @@
 local Graph = {}
-local GraphMT = {
-  __index = Graph,
-}
 
 function Graph:_new(runner)
   self._runner = runner
@@ -47,17 +44,18 @@ local COLOR_TEXT = {0, 0, 0, 1}
 
 function Graph:draw(x, y)
   lg.push('all')
-  self:_drawNode(self._tree, x, y)
+  self:_drawNode(self._tree, x, y, true)
   lg.pop()
 end
 
-function Graph:_drawNode(branch, x, y)
+function Graph:_drawNode(branch, x, y, parentActive)
   local font = lg.getFont()
   local w = font:getWidth(branch.name) + (PAD_H * 2)
   local h = font:getHeight()           + (PAD_V * 2)
 
   -- Draw current node.
-  lg.setColor(self:_isActionActive(branch.action) and COLOR_NODE_ACTIVE or COLOR_NODE_INACTIVE)
+  local active = parentActive and self:_isActionActive(branch.action)
+  lg.setColor(active and COLOR_NODE_ACTIVE or COLOR_NODE_INACTIVE)
   lg.rectangle('fill', x, y, w, h)
   lg.setColor(COLOR_TEXT)
   lg.print(branch.name, x + PAD_H, y + PAD_V)
@@ -70,7 +68,7 @@ function Graph:_drawNode(branch, x, y)
       prevDescendants = branch[i - 1].descendants + 1
     end
     y = y + (prevDescendants * (h + PAD_V))
-    self:_drawNode(branch[i], x, y)
+    self:_drawNode(branch[i], x, y, active)
   end
 end
 
@@ -88,6 +86,10 @@ function Graph:_isActionActive(action)
     runner = runner._next
   end
 end
+
+local GraphMT = {
+  __index = Graph,
+}
 
 return function(...)
   return setmetatable({}, GraphMT)
