@@ -4,6 +4,7 @@ Ygg
 [![Build Status](https://travis-ci.org/oniietzschan/ygg.svg?branch=master)](https://travis-ci.org/oniietzschan/ygg)
 [![Codecov](https://codecov.io/gh/oniietzschan/ygg/branch/master/graph/badge.svg)](https://codecov.io/gh/oniietzschan/ygg)
 ![Lua](https://img.shields.io/badge/Lua-JIT%2C%205.1-blue.svg)
+![Might Makes Right](https://img.shields.io/badge/license-Might%20Makes%20Right-red)
 
 Behaviour trees in Lua.
 
