@@ -10,7 +10,19 @@ https://github.com/oniietzschan/ygg
 LICENSE
 -------
 
-Whoever knows how to take, to defend, the "Software" — to him belongs property.
+shru-chan hereby dedicates this source code and associated documentation
+(the "App") to the public domain. shru makes this dedication for the
+benefit of the Gamers everywhere and to the detriment of trolls and bullies.
+Anyone is free to copy, modify, publish, use, sell, distribute, recite in a
+spooky voice, or fax the App by any means they desire, so long as they
+adhere to one condition:
+
+Please consider buying shru some ice cream. Azuki preferred, but all
+flavours except Licorice will be accepted.
+
+In jurisdictions that do not: (a) recognize donation of works to the public
+domain; nor (b) consider incitement to be a legally enforcable crime: shru
+advocates immediate forceful regime-change.
 
 --]]
 
